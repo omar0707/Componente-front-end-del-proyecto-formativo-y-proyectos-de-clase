@@ -1,0 +1,873 @@
+<!-- 
+# Evidencia GA7-220501096-AA4-EV03: Componente Front-End del Proyecto Formativo
+
+**Programa de Formacion:** Analisis y Desarrollo de Software (ADSO)  
+**Ficha:** 3186645  
+**Aprendiz:** Omar Ulpiano Molina Malaver  
+**Instructor:** Adonay Sanchez Vertel  
+**Centro de Formacion:** Centro Agropecuario y de Biotecnologia El Porvenir (SENA - Regional Cordoba / Monteria)  
+**Proyecto:** Sistema de Gestion para Peluqueria Canina - *CanStyling*  
+**Fecha:** Septiembre de 2026  
+-->
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanStyling - Front-End React & DataTables (Guía 7 - AA4-EV03)</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            amber: { 500: '#f59e0b', 600: '#d97706', 700: '#b45309' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- React 18 & ReactDOM & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .modal-backdrop {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+    }
+
+    .mobile-device-frame {
+      max-width: 420px;
+      margin: 0 auto;
+      border: 10px solid #1e293b;
+      border-radius: 36px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mobile-notch {
+      width: 140px;
+      height: 18px;
+      background: #1e293b;
+      margin: 0 auto;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- DATOS INICIALES ---
+    const INITIAL_SERVICES = [
+      { idServicio: 1, nombreServicio: "Baño Básico e Higiene", precioBase: 35000, duracion: 45 },
+      { idServicio: 2, nombreServicio: "Corte Comercial y Estilizado", precioBase: 55000, duracion: 75 },
+      { idServicio: 3, nombreServicio: "Spa Canino y Deslanado", precioBase: 70000, duracion: 90 },
+      { idServicio: 4, nombreServicio: "Profilaxis Dental Preventiva", precioBase: 25000, duracion: 30 }
+    ];
+
+    const INITIAL_CLIENTS = [
+      {
+        idCliente: 1,
+        tipoDocumento: "CC",
+        numeroDocumento: "1067890123",
+        nombres: "Laura",
+        apellidos: "Martínez Pérez",
+        correo: "laura.martinez@gmail.com",
+        ciudad: "Montería",
+        telefonos: [
+          { id: 101, numero: "3001112233", tipo: "WHATSAPP", esPrincipal: true },
+          { id: 102, numero: "3145556677", tipo: "MOVIL", esPrincipal: false }
+        ],
+        mascotas: [
+          { idMascota: 1, nombre: "Toby", raza: "Poodle (Caniche)", peso: 5.5 }
+        ]
+      },
+      {
+        idCliente: 2,
+        tipoDocumento: "CC",
+        numeroDocumento: "1067890456",
+        nombres: "Andrés",
+        apellidos: "Sánchez Doria",
+        correo: "andres.sanchez@hotmail.com",
+        ciudad: "Montería",
+        telefonos: [
+          { id: 201, numero: "3012223344", tipo: "WHATSAPP", esPrincipal: true }
+        ],
+        mascotas: [
+          { idMascota: 2, nombre: "Max", raza: "Golden Retriever", peso: 32.0 }
+        ]
+      },
+      {
+        idCliente: 3,
+        tipoDocumento: "CC",
+        numeroDocumento: "1067890789",
+        nombres: "María Fernanda",
+        apellidos: "Restrepo",
+        correo: "mafe.restrepo@gmail.com",
+        ciudad: "Montería",
+        telefonos: [
+          { id: 301, numero: "3023334455", tipo: "WHATSAPP", esPrincipal: true },
+          { id: 302, numero: "0347890011", tipo: "FIJO", esPrincipal: false }
+        ],
+        mascotas: [
+          { idMascota: 3, nombre: "Luna", raza: "Schnauzer Miniatura", peso: 6.8 }
+        ]
+      }
+    ];
+
+    const INITIAL_CITAS = [
+      {
+        idCita: 1,
+        idCliente: 1,
+        nombreCliente: "Laura Martínez Pérez",
+        telefonoCliente: "3001112233",
+        idMascota: 1,
+        nombreMascota: "Toby",
+        razaMascota: "Poodle (Caniche)",
+        idServicio: 2,
+        nombreServicio: "Corte Comercial y Estilizado",
+        fechaHora: "2026-09-22 09:00",
+        estado: "EN_PROCESO",
+        valorTotal: 55000,
+        tokenAcceso: "e4b2d18a-78f9-4c12-98ab-34cd56ef7890",
+        observacionesRecepcion: "Corte bajito en el lomo y pompones en patitas",
+        observacionesEntrega: "",
+        peluquero: "Carlos Gómez (Estilista)",
+        fotos: {
+          antes: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80",
+          despues: null
+        }
+      },
+      {
+        idCita: 2,
+        idCliente: 2,
+        nombreCliente: "Andrés Sánchez Doria",
+        telefonoCliente: "3012223344",
+        idMascota: 2,
+        nombreMascota: "Max",
+        razaMascota: "Golden Retriever",
+        idServicio: 3,
+        nombreServicio: "Spa Canino y Deslanado",
+        fechaHora: "2026-09-22 11:30",
+        estado: "PENDIENTE",
+        valorTotal: 70000,
+        tokenAcceso: "a1f8c9e2-4b3d-42e1-87ef-12ab34cd5678",
+        observacionesRecepcion: "Deslanado profundo por cambio de estación",
+        observacionesEntrega: "",
+        peluquero: "Carlos Gómez",
+        fotos: { antes: null, despues: null }
+      },
+      {
+        idCita: 3,
+        idCliente: 3,
+        nombreCliente: "María Fernanda Restrepo",
+        telefonoCliente: "3023334455",
+        idMascota: 3,
+        nombreMascota: "Luna",
+        razaMascota: "Schnauzer Miniatura",
+        idServicio: 1,
+        nombreServicio: "Baño Básico e Higiene",
+        fechaHora: "2026-09-21 15:00",
+        estado: "COMPLETADA",
+        valorTotal: 35000,
+        tokenAcceso: "c9d8e7f6-5a4b-3c2d-1e0f-9876543210ab",
+        observacionesRecepcion: "Baño medicado y corte de uñas",
+        observacionesEntrega: "Servicio completado con éxito, pelaje brillante y sedoso.",
+        peluquero: "Carlos Gómez",
+        fotos: {
+          antes: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=600&q=80",
+          despues: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80"
+        }
+      }
+    ];
+
+    // --- COMPONENTE NAVBAR ---
+    function Navbar({ activeView, setActiveView, user, onOpenLogin, onLogout }) {
+      return (
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div onClick={() => setActiveView('dashboard')} className="flex items-center gap-2 cursor-pointer select-none">
+              <span className="text-2xl">🐕</span>
+              <span className="font-extrabold text-xl tracking-tight text-slate-900">
+                Can<span className="text-amber-500">Styling</span>
+              </span>
+              <span className="hidden sm:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                Front-End React
+              </span>
+            </div>
+
+            <nav className="flex items-center gap-1 sm:gap-2">
+              {[
+                { id: 'dashboard', label: '📊 Panel' },
+                { id: 'citas', label: '📅 Turnos (DataTable)' },
+                { id: 'clientes', label: '👥 Clientes' },
+                { id: 'peluquero', label: '📱 WebApp Peluquero' },
+                { id: 'album', label: '🖼️ Álbum Cliente' }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveView(item.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeView === item.id
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            <div>
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <span className="hidden md:inline text-xs font-bold text-slate-700">👤 {user.nombre}</span>
+                  <button onClick={onLogout} className="text-xs px-2.5 py-1 bg-rose-50 text-rose-600 rounded-md font-bold hover:bg-rose-100">
+                    Salir
+                  </button>
+                </div>
+              ) : (
+                <button onClick={onOpenLogin} className="text-xs px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg shadow-sm">
+                  🔐 Login OTP
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    // --- COMPONENTE DASHBOARD ---
+    function Dashboard({ citas, clientes, setActiveView, onOpenAgendar }) {
+      const citasPendientes = citas.filter(c => c.estado !== 'COMPLETADA').length;
+      const citasCompletadas = citas.filter(c => c.estado === 'COMPLETADA').length;
+      const totalIngresos = citas.filter(c => c.estado === 'COMPLETADA').reduce((a, b) => a + b.valorTotal, 0);
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950 text-white rounded-3xl p-6 sm:p-8 shadow-md">
+            <span className="text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30">
+              ✨ Panel Ejecutivo de Peluquería Canina
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black mt-3">
+              Sistema de Gestión Integral <span className="text-amber-400">CanStyling</span>
+            </h1>
+            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+              Control centralizado de agenda de turnos, toma de fotografías Antes/Después con cámara móvil y álbumes con seguridad Anti-IDOR.
+            </p>
+            <div className="mt-5 flex gap-3 flex-wrap">
+              <button onClick={onOpenAgendar} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-sm">
+                ➕ Agendar Turno
+              </button>
+              <button onClick={() => setActiveView('peluquero')} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700">
+                📱 Abrir WebApp Móvil Peluquero
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span className="text-xs font-bold text-slate-400 uppercase">Turnos Activos</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">{citasPendientes}</div>
+              <span className="text-xs text-amber-600 font-semibold">En espera o en proceso</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span className="text-xs font-bold text-slate-400 uppercase">Servicios Finalizados</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">{citasCompletadas}</div>
+              <span className="text-xs text-emerald-600 font-semibold">Con fotos y álbum Anti-IDOR</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span className="text-xs font-bold text-slate-400 uppercase">Ingresos Facturados</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">${totalIngresos.toLocaleString('es-CO')}</div>
+              <span className="text-xs text-indigo-600 font-semibold">Caja de turnos completados</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE CITAS DATATABLE ---
+    function CitasDataTable({ citas, onOpenAgendar, onCompletarCita, onVerAlbum }) {
+      const [searchTerm, setSearchTerm] = useState('');
+      const [filterEstado, setFilterEstado] = useState('TODAS');
+      const [copiedToken, setCopiedToken] = useState(null);
+
+      const filtered = citas.filter(c => {
+        const matchesEstado = filterEstado === 'TODAS' || c.estado === filterEstado;
+        const term = searchTerm.toLowerCase();
+        const matchesSearch =
+          c.nombreMascota.toLowerCase().includes(term) ||
+          c.nombreCliente.toLowerCase().includes(term) ||
+          c.nombreServicio.toLowerCase().includes(term) ||
+          c.tokenAcceso.toLowerCase().includes(term);
+        return matchesEstado && matchesSearch;
+      });
+
+      const copyToken = (tok) => {
+        navigator.clipboard?.writeText(tok);
+        setCopiedToken(tok);
+        setTimeout(() => setCopiedToken(null), 2000);
+      };
+
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-lg font-black text-slate-900">📅 Agenda de Turnos (DataTables)</h2>
+              <p className="text-xs text-slate-500">Filtrado en vivo por estado y gestión de tokens Anti-IDOR</p>
+            </div>
+            <button onClick={onOpenAgendar} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-sm">
+              ➕ Agendar Cita
+            </button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center">
+            <input
+              type="text"
+              placeholder="🔍 Buscar por mascota, dueño o token..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3.5 py-2 border border-slate-300 rounded-xl text-xs flex-1 focus:outline-none focus:border-amber-500"
+            />
+            <div className="flex gap-1">
+              {['TODAS', 'PENDIENTE', 'EN_PROCESO', 'COMPLETADA'].map(st => (
+                <button
+                  key={st}
+                  onClick={() => setFilterEstado(st)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${filterEstado === st ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}
+                >
+                  {st === 'TODAS' ? 'Todas' : st}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="bg-slate-100 text-slate-600 uppercase font-bold">
+                <tr>
+                  <th className="p-3">#</th>
+                  <th className="p-3">Fecha</th>
+                  <th className="p-3">Mascota</th>
+                  <th className="p-3">Dueño</th>
+                  <th className="p-3">Servicio</th>
+                  <th className="p-3">Precio</th>
+                  <th className="p-3">Estado</th>
+                  <th className="p-3">Token Anti-IDOR</th>
+                  <th className="p-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map(c => (
+                  <tr key={c.idCita} className="hover:bg-slate-50">
+                    <td className="p-3 font-bold">#{c.idCita}</td>
+                    <td className="p-3 whitespace-nowrap">{c.fechaHora}</td>
+                    <td className="p-3 font-bold">{c.nombreMascota} <span className="font-normal text-slate-400">({c.razaMascota})</span></td>
+                    <td className="p-3">{c.nombreCliente}</td>
+                    <td className="p-3">{c.nombreServicio}</td>
+                    <td className="p-3 font-bold">${c.valorTotal.toLocaleString('es-CO')}</td>
+                    <td className="p-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${c.estado === 'COMPLETADA' ? 'bg-emerald-100 text-emerald-800' :
+                          c.estado === 'EN_PROCESO' ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                        {c.estado}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1">
+                        <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[10px]">{c.tokenAcceso.substring(0, 8)}...</code>
+                        <button onClick={() => copyToken(c.tokenAcceso)} className="text-slate-400 hover:text-amber-600 text-xs">
+                          {copiedToken === c.tokenAcceso ? '✔' : '📋'}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => onVerAlbum(c.tokenAcceso)} className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-bold">
+                          🖼️ Álbum
+                        </button>
+                        {c.estado !== 'COMPLETADA' && (
+                          <button onClick={() => onCompletarCita(c.idCita)} className="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[11px] font-bold">
+                            ✔ Finalizar
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE PELUQUERO MOBILE APP (FASE 3) ---
+    function PeluqueroMobileApp({ citas, onUpdateCitaFoto, onFinalizarServicio, onVerAlbum }) {
+      const [selectedId, setSelectedId] = useState(citas[0]?.idCita || 1);
+      const [obs, setObs] = useState('');
+      const c = citas.find(cita => cita.idCita === Number(selectedId)) || citas[0];
+
+      const handlePhoto = (e, tipo) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => onUpdateCitaFoto(c.idCita, tipo, ev.target.result);
+          reader.readAsDataURL(file);
+        }
+      };
+
+      return (
+        <div className="space-y-4">
+          <div className="text-center">
+            <span className="text-[11px] font-bold uppercase bg-sky-100 text-sky-800 px-3 py-1 rounded-full">
+              📱 Fase 3: WebApp Móvil del Peluquero
+            </span>
+            <h2 className="text-xl font-black text-slate-900 mt-1">Módulo Operativo con Cámara HTML5</h2>
+          </div>
+
+          <div className="mobile-device-frame">
+            <div className="bg-slate-900 text-white text-[10px] px-4 py-1 flex justify-between items-center">
+              <span>09:41</span>
+              <div className="mobile-notch"></div>
+              <span>📶 5G 100%</span>
+            </div>
+
+            <div className="bg-slate-900 text-white p-3 flex justify-between items-center">
+              <span className="font-black text-xs text-amber-400">✂️ CanStyling Móvil</span>
+              <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">Carlos Gómez</span>
+            </div>
+
+            <div className="p-4 space-y-3 flex-1 overflow-y-auto bg-slate-50 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Turno en Atención:</label>
+                <select
+                  value={selectedId}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold"
+                >
+                  {citas.map(item => (
+                    <option key={item.idCita} value={item.idCita}>
+                      #{item.idCita} - {item.nombreMascota} ({item.nombreServicio})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-slate-200">
+                <div className="font-extrabold text-sm text-slate-900">{c.nombreMascota} ({c.razaMascota})</div>
+                <div className="text-slate-500 text-[11px]">Dueño: {c.nombreCliente} • Tel: {c.telefonoCliente}</div>
+                <div className="bg-amber-50 p-2 rounded-lg text-amber-900 mt-2 text-[11px]">
+                  <strong>Instrucciones:</strong> {c.observacionesRecepcion || "Corte y baño regular."}
+                </div>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+                <div className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
+                  📸 Cámara HTML5 (Antes y Después)
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="border border-dashed border-slate-300 rounded-xl p-2 text-center bg-slate-50">
+                    <div className="text-[10px] font-bold text-slate-500 mb-1">Foto "Antes"</div>
+                    {c.fotos?.antes ? (
+                      <img src={c.fotos.antes} className="w-full h-20 object-cover rounded" />
+                    ) : (
+                      <div className="h-20 flex items-center justify-center text-slate-400 text-lg">📷</div>
+                    )}
+                    <label className="mt-1 block">
+                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhoto(e, 'antes')} className="hidden" />
+                      <span className="block py-1 bg-sky-500 hover:bg-sky-600 text-white rounded text-[10px] font-bold cursor-pointer">
+                        {c.fotos?.antes ? '🔄 Cambiar' : '📸 Tomar Foto'}
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="border border-dashed border-slate-300 rounded-xl p-2 text-center bg-slate-50">
+                    <div className="text-[10px] font-bold text-slate-500 mb-1">Foto "Después"</div>
+                    {c.fotos?.despues ? (
+                      <img src={c.fotos.despues} className="w-full h-20 object-cover rounded" />
+                    ) : (
+                      <div className="h-20 flex items-center justify-center text-slate-400 text-lg">✨</div>
+                    )}
+                    <label className="mt-1 block">
+                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhoto(e, 'despues')} className="hidden" />
+                      <span className="block py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded text-[10px] font-bold cursor-pointer">
+                        {c.fotos?.despues ? '🔄 Cambiar' : '📸 Tomar Foto'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+                <label className="font-bold text-slate-700">Observaciones Finales:</label>
+                <textarea
+                  rows="2"
+                  value={obs || c.observacionesEntrega || ''}
+                  onChange={(e) => setObs(e.target.value)}
+                  placeholder="Ej. Corte de uñas realizado, pelo desenredado..."
+                  className="w-full border border-slate-300 rounded-lg p-1.5 text-xs"
+                />
+                <button
+                  onClick={() => onFinalizarServicio(c.idCita, obs)}
+                  disabled={c.estado === 'COMPLETADA'}
+                  className={`w-full py-2 rounded-xl font-bold text-xs ${c.estado === 'COMPLETADA' ? 'bg-slate-200 text-slate-500' : 'bg-emerald-600 text-white'
+                    }`}
+                >
+                  {c.estado === 'COMPLETADA' ? '✔ Turno Finalizado' : '✔ Finalizar y Notificar'}
+                </button>
+                {c.estado === 'COMPLETADA' && (
+                  <button onClick={() => onVerAlbum(c.tokenAcceso)} className="w-full py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold">
+                    🔗 Ver Álbum Generado
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE ALBUM CLIENTE (FASE 5 - ANTI IDOR) ---
+    function AlbumDigitalCliente({ citas, initialToken, onBackToDashboard }) {
+      const [tokenInput, setTokenInput] = useState(initialToken || 'e4b2d18a-78f9-4c12-98ab-34cd56ef7890');
+      const [tokenActivo, setTokenActivo] = useState(initialToken || 'e4b2d18a-78f9-4c12-98ab-34cd56ef7890');
+      const c = citas.find(item => item.tokenAcceso === tokenActivo);
+
+      return (
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2">
+            <span className="text-xs font-mono text-slate-400">canstyling.com/album?token=</span>
+            <input
+              type="text"
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              className="flex-1 border border-slate-300 rounded-lg p-1.5 text-xs font-mono"
+            />
+            <button
+              onClick={() => setTokenActivo(tokenInput.trim())}
+              className="px-3 py-1.5 bg-amber-500 text-slate-950 rounded-lg text-xs font-bold"
+            >
+              Consultar
+            </button>
+          </div>
+
+          {!c ? (
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center space-y-2">
+              <span className="text-4xl">🔒</span>
+              <h3 className="text-base font-black text-rose-600">Acceso No Autorizado</h3>
+              <p className="text-xs text-slate-500">Token no válido o expirado. Diseño de protección Anti-IDOR.</p>
+              <button
+                onClick={() => { setTokenActivo('e4b2d18a-78f9-4c12-98ab-34cd56ef7890'); setTokenInput('e4b2d18a-78f9-4c12-98ab-34cd56ef7890'); }}
+                className="mt-2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg"
+              >
+                Cargar Token Válido de Prueba
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-md">
+              <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 text-center">
+                <span className="text-3xl">🐶✨</span>
+                <h1 className="text-xl font-black mt-1">¡Transformación de {c.nombreMascota}!</h1>
+                <p className="text-xs text-amber-100">{c.nombreServicio} • Dueño: {c.nombreCliente}</p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
+                    <span className="text-xs font-bold text-slate-600 block mb-2">✂️ 1. ANTES</span>
+                    <img src={c.fotos?.antes || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80"} className="w-full h-48 object-cover rounded-xl" />
+                  </div>
+                  <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-center">
+                    <span className="text-xs font-bold text-amber-900 block mb-2">✨ 2. DESPUÉS</span>
+                    <img src={c.fotos?.despues || "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80"} className="w-full h-48 object-cover rounded-xl" />
+                  </div>
+                </div>
+
+                {c.observacionesEntrega && (
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-emerald-900 text-xs">
+                    <strong>Nota del Estilista:</strong> {c.observacionesEntrega}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // --- COMPONENTE CLIENTES DATATABLE ---
+    function ClientesDataTable({ clientes, onAddCliente }) {
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-black text-slate-900">👥 Directorio de Propietarios</h2>
+            <p className="text-xs text-slate-500">Soporte relacional multi-teléfono y fichas caninas</p>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="bg-slate-100 text-slate-600 uppercase font-bold">
+                <tr>
+                  <th className="p-3">ID</th>
+                  <th className="p-3">Documento</th>
+                  <th className="p-3">Propietario</th>
+                  <th className="p-3">Correo</th>
+                  <th className="p-3">Teléfonos / WhatsApp</th>
+                  <th className="p-3">Mascotas</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {clientes.map(cl => (
+                  <tr key={cl.idCliente} className="hover:bg-slate-50">
+                    <td className="p-3 font-bold">#{cl.idCliente}</td>
+                    <td className="p-3">{cl.tipoDocumento} {cl.numeroDocumento}</td>
+                    <td className="p-3 font-bold">{cl.nombres} {cl.apellidos}</td>
+                    <td className="p-3">{cl.correo}</td>
+                    <td className="p-3">
+                      {cl.telefonos.map(t => (
+                        <div key={t.id} className="text-emerald-700 font-bold">📱 {t.numero} ({t.tipo})</div>
+                      ))}
+                    </td>
+                    <td className="p-3">
+                      {cl.mascotas?.map(m => (
+                        <span key={m.idMascota} className="inline-block bg-amber-50 text-amber-900 px-2 py-0.5 rounded border border-amber-200 font-bold mr-1">
+                          🐾 {m.nombre} ({m.raza})
+                        </span>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // --- MODAL AGENDAR CITA ---
+    function AgendarCitaModal({ isOpen, onClose, clientes, servicios, onCrearCita }) {
+      if (!isOpen) return null;
+      const [idCl, setIdCl] = useState(clientes[0]?.idCliente || 1);
+      const [idSrv, setIdSrv] = useState(1);
+      const [fecha, setFecha] = useState('2026-09-23 10:00');
+      const [obs, setObs] = useState('');
+
+      const cl = clientes.find(c => c.idCliente === Number(idCl)) || clientes[0];
+      const m = cl.mascotas[0] || { idMascota: 1, nombre: 'Mascota', raza: 'Canina' };
+      const s = servicios.find(srv => srv.idServicio === Number(idSrv)) || servicios[0];
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const tok = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+        onCrearCita({
+          idCita: Date.now() % 10000,
+          idCliente: cl.idCliente,
+          nombreCliente: `${cl.nombres} ${cl.apellidos}`,
+          telefonoCliente: cl.telefonos[0]?.numero || '3001234567',
+          idMascota: m.idMascota,
+          nombreMascota: m.nombre,
+          razaMascota: m.raza,
+          idServicio: s.idServicio,
+          nombreServicio: s.nombreServicio,
+          fechaHora: fecha,
+          estado: 'PENDIENTE',
+          valorTotal: s.precioBase,
+          tokenAcceso: tok,
+          observacionesRecepcion: obs,
+          observacionesEntrega: '',
+          peluquero: 'Carlos Gómez',
+          fotos: { antes: null, despues: null }
+        });
+        onClose();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h3 className="text-base font-black">📅 Agendar Cita</h3>
+              <button onClick={onClose}>✕</button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block">Cliente:</label>
+                <select value={idCl} onChange={(e) => setIdCl(e.target.value)} className="w-full border rounded-lg p-2">
+                  {clientes.map(c => <option key={c.idCliente} value={c.idCliente}>{c.nombres} {c.apellidos}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="font-bold block">Servicio:</label>
+                <select value={idSrv} onChange={(e) => setIdSrv(e.target.value)} className="w-full border rounded-lg p-2">
+                  {servicios.map(srv => <option key={srv.idServicio} value={srv.idServicio}>{srv.nombreServicio} - ${srv.precioBase}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="font-bold block">Fecha y Hora:</label>
+                <input type="text" value={fecha} onChange={(e) => setFecha(e.target.value)} className="w-full border rounded-lg p-2" />
+              </div>
+              <div>
+                <label className="font-bold block">Observaciones:</label>
+                <input type="text" value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Ej. Corte bajito" className="w-full border rounded-lg p-2" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={onClose} className="px-3 py-1.5 bg-slate-100 rounded-lg">Cancelar</button>
+                <button type="submit" className="px-3 py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg">Confirmar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // --- MODAL LOGIN OTP ---
+    function LoginModal({ isOpen, onClose, onLoginSuccess }) {
+      if (!isOpen) return null;
+      const [email, setEmail] = useState('');
+      const [otp, setOtp] = useState('');
+      const [sentOtp, setSentOtp] = useState(null);
+
+      const handleSend = (e) => {
+        e.preventDefault();
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setSentOtp(code);
+      };
+
+      const handleVerify = (e) => {
+        e.preventDefault();
+        if (otp === sentOtp) {
+          onLoginSuccess({ nombre: email.split('@')[0], email, rol: 'CLIENTE_OTP' });
+          onClose();
+        } else {
+          alert('Código OTP incorrecto.');
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h3 className="text-base font-black">🔐 Acceso OTP Passwordless</h3>
+              <button onClick={onClose}>✕</button>
+            </div>
+            {!sentOtp ? (
+              <form onSubmit={handleSend} className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold block">Correo Registrado:</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="laura@gmail.com" className="w-full border rounded-lg p-2" />
+                </div>
+                <button type="submit" className="w-full py-2 bg-amber-500 text-slate-950 font-bold rounded-lg">
+                  Solicitar Código OTP
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerify} className="space-y-3 text-xs">
+                <div className="bg-amber-50 p-2.5 rounded-lg text-center">
+                  <span className="block text-[10px] text-amber-800">Código OTP generado:</span>
+                  <span className="text-xl font-black text-amber-900 tracking-widest">{sentOtp}</span>
+                </div>
+                <div>
+                  <label className="font-bold block">Ingrese los 6 dígitos:</label>
+                  <input type="text" maxLength={6} required value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full border rounded-lg p-2 text-center text-base font-bold font-mono" />
+                </div>
+                <button type="submit" className="w-full py-2 bg-emerald-600 text-white font-bold rounded-lg">
+                  Validar Código y Entrar
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- APP PRINCIPAL ---
+    function App() {
+      const [activeView, setActiveView] = useState('dashboard');
+      const [citas, setCitas] = useState(INITIAL_CITAS);
+      const [clientes, setClientes] = useState(INITIAL_CLIENTS);
+      const [servicios] = useState(INITIAL_SERVICES);
+      const [isAgendarOpen, setIsAgendarOpen] = useState(false);
+      const [isLoginOpen, setIsLoginOpen] = useState(false);
+      const [selectedAlbumToken, setSelectedAlbumToken] = useState('e4b2d18a-78f9-4c12-98ab-34cd56ef7890');
+      const [user, setUser] = useState({ nombre: 'Omar Molina (Admin)', rol: 'ADMINISTRADOR' });
+
+      const handleCrearCita = (n) => setCitas([n, ...citas]);
+      const handleCompletarCita = (id, obs) => {
+        setCitas(citas.map(c => c.idCita === id ? { ...c, estado: 'COMPLETADA', observacionesEntrega: obs || 'Servicio completado con éxito.' } : c));
+      };
+      const handleUpdateCitaFoto = (id, tipo, dataUrl) => {
+        setCitas(citas.map(c => c.idCita === id ? { ...c, fotos: { ...c.fotos, [tipo]: dataUrl } } : c));
+      };
+      const handleVerAlbum = (tok) => {
+        setSelectedAlbumToken(tok);
+        setActiveView('album');
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col">
+          <Navbar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            user={user}
+            onOpenLogin={() => setIsLoginOpen(true)}
+            onLogout={() => setUser(null)}
+          />
+
+          <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+            {activeView === 'dashboard' && <Dashboard citas={citas} clientes={clientes} setActiveView={setActiveView} onOpenAgendar={() => setIsAgendarOpen(true)} />}
+            {activeView === 'citas' && <CitasDataTable citas={citas} onOpenAgendar={() => setIsAgendarOpen(true)} onCompletarCita={handleCompletarCita} onVerAlbum={handleVerAlbum} />}
+            {activeView === 'clientes' && <ClientesDataTable clientes={clientes} onAddCliente={() => { }} />}
+            {activeView === 'peluquero' && <PeluqueroMobileApp citas={citas} onUpdateCitaFoto={handleUpdateCitaFoto} onFinalizarServicio={handleCompletarCita} onVerAlbum={handleVerAlbum} />}
+            {activeView === 'album' && <AlbumDigitalCliente citas={citas} initialToken={selectedAlbumToken} onBackToDashboard={() => setActiveView('dashboard')} />}
+          </main>
+
+          <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+            <strong>CanStyling</strong> &copy; 2026 - SENA ADSO Ficha 3186645 | Evidencia: GA7-220501096-AA4-EV03
+          </footer>
+
+          <AgendarCitaModal isOpen={isAgendarOpen} onClose={() => setIsAgendarOpen(false)} clientes={clientes} servicios={servicios} onCrearCita={handleCrearCita} />
+          <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLoginSuccess={u => setUser(u)} />
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
